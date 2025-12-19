@@ -1,0 +1,36 @@
+{
+  "editor.codeActionsOnSave": {
+    "source.fixAll.stylelint": "explicit",
+    "source.fixAll.eslint": "always"
+  },
+  "cSpell.words": [
+    "Bootstrapper",
+    "cdylib",
+    "iconify",
+    "iconsets",
+    "lilei",
+    "njsproj",
+    "nonblock",
+    "nsis",
+    "ntvs",
+    "Pixmap",
+    "Qlementine",
+    "resvg",
+    "rgba",
+    "rlib",
+    "serde",
+    "skia",
+    "staticlib",
+    "tauri",
+    "TTFB",
+    "unfonts",
+    "Unlisten",
+    "unmaximize",
+    "unminimize",
+    "unplugin",
+    "usvg",
+    "Vite",
+    "Vuetify",
+    "vueuse"
+  ]
+}

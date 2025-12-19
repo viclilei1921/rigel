@@ -1,0 +1,27 @@
+max_width = 120          # 每行最大长度
+use_small_heuristics = "Max"  # 尽量减少自动换行
+newline_style = "Unix"   # 使用 \n 换行（默认）
+
+hard_tabs = false # 不使用真正的制表符
+tab_spaces = 2 # 每个缩进使用两个空格
+
+fn_call_width = 80          # 超过 80 字符才换行函数参数
+fn_params_layout = "Tall"   # 多参数函数参数竖排（"Tall"）或单行（"Compressed"）
+trailing_comma = "Vertical" # 多行结构最后一项是否加逗号
+space_after_colon = true    # 冒号后加空格：`let a: i32` ✅
+space_before_colon = false  # 冒号前不加空格：❌ `a : i32`
+
+imports_granularity = "Crate"   # use 合并方式："Crate" | "Module" | "Item"
+group_imports = "StdExternalCrate"  # 分组顺序：std / 外部库 / 本地模块
+reorder_imports = true             # 自动重新排序 use
+
+control_brace_style = "AlwaysSameLine"  # 控制 if/for 等花括号风格
+brace_style = "AlwaysNextLine"          # 或者 "AlwaysSameLine"
+wrap_comments = true                    # 自动换行注释
+normalize_comments = true               # 规范化注释空格
+
+struct_field_align_threshold = 20   # 结构体字段对齐
+enum_discrim_align_threshold = 20   # 枚举值对齐
+
+merge_derives = true            # 合并 #[derive(...)] 行
+condense_wildcard_suffixes = true # 自动合并 `use crate::a::*; use crate::b::*;`

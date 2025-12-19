@@ -1,0 +1,42 @@
+{
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "identifier": "default",
+  "description": "Capability for the main window",
+  "windows": [
+    "*"
+  ],
+  "permissions": [
+    "core:default",
+    "core:window:allow-create",
+    "core:window:allow-close",
+    "core:window:allow-show",
+    "core:window:allow-destroy",
+    "core:window:allow-hide",
+    "core:window:allow-maximize",
+    "core:window:allow-minimize",
+    "core:window:allow-unmaximize",
+    "core:window:allow-set-resizable",
+    "core:window:allow-is-fullscreen",
+    "core:window:allow-set-fullscreen",
+    "core:window:allow-available-monitors",
+    "core:window:allow-center",
+    "core:window:allow-current-monitor",
+    "core:window:allow-cursor-position",
+    "core:window:allow-get-all-windows",
+    "core:window:allow-inner-position",
+    "core:window:allow-inner-size",
+    "core:window:allow-internal-toggle-maximize",
+    "core:window:allow-set-closable",
+    "core:window:allow-start-dragging",
+    "core:window:allow-start-resize-dragging",
+    "core:webview:allow-create-webview",
+    "core:webview:allow-create-webview-window",
+    "core:path:allow-basename",
+    "opener:allow-open-url",
+    "opener:deny-open-url",
+    "opener:allow-default-urls",
+    "opener:default",
+    "dialog:default",
+    "fs:default"
+  ]
+}
