@@ -1,5 +1,6 @@
 use std::{fs, path};
 
+use log::info;
 use resvg::usvg;
 use tauri::{AppHandle, Runtime};
 
@@ -10,7 +11,7 @@ pub fn svg_to_png<R: Runtime>(app: AppHandle<R>, svg_path: String, width: u32, h
   let cache_dir = get_cache_dir(app)?;
   let filename = path::Path::new(&svg_path).file_prefix().expect("file path error");
 
-  println!("cache dir: {}", cache_dir.display());
+  info!("cache dir: {}", cache_dir.display());
 
   let out_file_name = format!("{}_{}x{}.png", filename.to_str().unwrap(), width, height);
   let output_path = cache_dir.join(out_file_name);

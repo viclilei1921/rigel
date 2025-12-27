@@ -1,5 +1,7 @@
 import { type, version } from '@tauri-apps/plugin-os'
 
+import { logger } from './LoggerWrapper'
+
 /**
  * 平台类型枚举
  */
@@ -34,6 +36,8 @@ class PlatformDetector {
     } catch (error) {
       console.warn('Failed to detect platform:', error)
     }
+
+    logger.info(`Platform detected: ${this.osType} (${this.osVersion})`)
 
     this._initialized = true
   }
@@ -148,4 +152,5 @@ class PlatformDetector {
   }
 }
 
+/** 平台 */
 export const platformDetector = new PlatformDetector()

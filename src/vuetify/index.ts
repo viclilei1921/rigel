@@ -4,20 +4,14 @@ import { createVuetify } from 'vuetify'
 import { md3 } from 'vuetify/blueprints'
 import {
   VApp,
-  VAppBar,
-  VAvatar,
   VBtn,
-  VCard,
-  VCardTitle,
-  VCol,
   VContainer,
-  VFooter,
+  VDivider,
   VImg,
   VMain,
+  VNavigationDrawer,
   VNumberInput,
-  VRow,
-  VSpacer,
-  VSystemBar
+  VTimePicker
 } from 'vuetify/components'
 import { Ripple } from 'vuetify/directives'
 
@@ -26,21 +20,21 @@ import 'vuetify/styles'
 export function setupVuetify(app: App) {
   const vuetify = createVuetify({
     components: {
-      VBtn,
       VApp,
-      VSpacer,
-      VSystemBar,
-      VAppBar,
-      VAvatar,
-      VContainer,
-      VImg,
-      VFooter,
+
+      VNavigationDrawer,
+      VDivider,
+
       VMain,
+      VContainer,
+
+      VBtn,
+
+      VImg,
+
       VNumberInput,
-      VRow,
-      VCol,
-      VCard,
-      VCardTitle
+
+      VTimePicker
     },
     directives: {
       Ripple

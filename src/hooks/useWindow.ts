@@ -1,6 +1,6 @@
 import { WebviewWindow } from '@tauri-apps/api/webviewWindow'
 
-import { platformDetector } from '../utils'
+import { logger, platformDetector } from '../utils'
 
 export function useWindow() {
   async function createWebviewWindow(
@@ -40,13 +40,11 @@ export function useWindow() {
     })
 
     webview.once('tauri://webview-created', async () => {
-      // eslint-disable-next-line no-console
-      console.log('webview created')
+      logger.info('webview created')
     })
 
     webview.once('tauri://window-created', async () => {
-      // eslint-disable-next-line no-console
-      console.log('window created')
+      logger.info('window created')
       if (wantCloseWindow) {
         const win = await WebviewWindow.getByLabel(wantCloseWindow)
         win?.close()
@@ -54,8 +52,7 @@ export function useWindow() {
     })
 
     webview.once('tauri://destroyed', async () => {
-      // eslint-disable-next-line no-console
-      console.log('webview destroyed')
+      logger.info('webview destroyed')
     })
 
     // webview.show()

@@ -31,12 +31,15 @@
     "core:window:allow-start-resize-dragging",
     "core:webview:allow-create-webview",
     "core:webview:allow-create-webview-window",
+    "core:app:allow-default-window-icon",
     "core:path:allow-basename",
     "opener:allow-open-url",
     "opener:deny-open-url",
     "opener:allow-default-urls",
     "opener:default",
     "dialog:default",
-    "fs:default"
+    "fs:default",
+    "log:default",
+    "shell:default"
   ]
 }

@@ -2,20 +2,30 @@ import { createApp } from 'vue'
 
 import App from './App.vue'
 import { setupRouter } from './router'
-import { platformDetector, startWebVitalObserver } from './utils'
+import { logger, platformDetector, startWebVitalObserver, trayWrapper } from './utils'
 import { setupVuetify } from './vuetify'
 import './style/global.less'
 import 'unfonts.css'
 
-platformDetector.init()
-startWebVitalObserver()
+async function init() {
+  // 初始化日志系统
+  await logger.init()
 
-// eslint-disable-next-line no-console
-console.log(`Platform detected: ${platformDetector.osType} (${platformDetector.osVersion})`)
+  // web性能检查
+  startWebVitalObserver()
 
-const app = createApp(App)
+  // 系统托盘
+  await trayWrapper.init()
 
-setupVuetify(app)
-setupRouter(app)
+  // 获取平台
+  platformDetector.init()
 
-app.mount('#app')
+  const app = createApp(App)
+
+  setupVuetify(app)
+  setupRouter(app)
+
+  app.mount('#app')
+}
+
+init()

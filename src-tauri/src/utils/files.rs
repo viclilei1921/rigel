@@ -19,7 +19,6 @@ pub fn get_cache_dir<R: Runtime>(app: AppHandle<R>) -> Result<PathBuf, String> {
 #[tauri::command]
 pub fn open_cache_folder<R: Runtime>(app: AppHandle<R>) -> Result<(), String> {
   let dir = get_cache_dir(app).map_err(|e| e.to_string())?;
-  
 
   opener::open(&dir).map_err(|e| e.to_string())?;
 

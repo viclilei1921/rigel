@@ -2,6 +2,8 @@ import type { Metric } from 'web-vitals'
 
 import { onCLS, onFCP, onINP, onLCP, onTTFB } from 'web-vitals'
 
+import { logger } from './LoggerWrapper'
+
 type WebVitalMetric
   = | (Metric & { type: 'web-vital' })
     | {
@@ -16,8 +18,7 @@ type Reporter = (metric: WebVitalMetric) => void
 
 function defaultReporter(metric: WebVitalMetric) {
   const label = metric.type === 'web-vital' ? metric.name : 'long-task'
-  // eslint-disable-next-line no-console
-  console.info('[performance]', label, metric)
+  logger.info('[performance]', label, metric)
 }
 
 let hasStarted = false

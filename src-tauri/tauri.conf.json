@@ -13,7 +13,7 @@
     "withGlobalTauri": true,
     "windows": [
       {
-        "title": "rigel",
+        "title": "Rigel",
         "label": "main",
         "url": "/",
         "fullscreen": false,
@@ -26,7 +26,7 @@
         "skipTaskbar": false,
         "transparent": true,
         "visible": true,
-        "decorations": false
+        "decorations": true
       }
     ],
     "security": {
@@ -51,6 +51,9 @@
       "icons/128x128@2x.png",
       "icons/icon.icns",
       "icons/icon.ico"
+    ],
+    "externalBin": [
+      "binaries/ffmpeg" 
     ]
   }
 }
