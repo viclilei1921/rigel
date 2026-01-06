@@ -1,4 +1,5 @@
+export * from './File'
 export * from './LoggerWrapper'
 export * from './PlatformDetector'
-export * from './TrayWrapper'
+export * from './TimeFormat'
 export * from './WebVitalsObserver'

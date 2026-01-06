@@ -26,7 +26,8 @@
         "skipTaskbar": false,
         "transparent": true,
         "visible": true,
-        "decorations": true
+        "decorations": true,
+        "additionalBrowserArgs": "--force-high-performance-gpu --enable-features=Vulkan"
       }
     ],
     "security": {
@@ -54,6 +55,13 @@
     ],
     "externalBin": [
       "binaries/ffmpeg" 
-    ]
+    ],
+     "macOS": {
+      "entitlements": null,
+      "exceptionDomain": "",
+      "frameworks": [],
+      "providerShortName": null,
+      "signingIdentity": null
+    }
   }
 }

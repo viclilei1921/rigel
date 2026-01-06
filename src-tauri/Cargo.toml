@@ -36,7 +36,7 @@ log = "^0.4"
 chrono = { version = "0.4", features = ["clock"] }
 tauri-plugin-shell = "2"
 
-wgpu = { version = "27", default-features = false, features = ["vulkan", "gles"] }
+wgpu = { version = "27", default-features = false, features = ["vulkan", "gles", "metal"] }
 
 regex = "1.12.2"
-
+tokio = "1.49.0"

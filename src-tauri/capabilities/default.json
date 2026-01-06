@@ -40,6 +40,7 @@
     "dialog:default",
     "fs:default",
     "log:default",
-    "shell:default"
+    "shell:default",
+    "shell:allow-open"
   ]
 }

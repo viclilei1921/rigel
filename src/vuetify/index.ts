@@ -3,17 +3,45 @@ import type { App } from 'vue'
 import { createVuetify } from 'vuetify'
 import { md3 } from 'vuetify/blueprints'
 import {
+  VAlert,
   VApp,
   VBtn,
+  VCard,
+  VCardActions,
+  VCardItem,
+  VCardSubtitle,
+  VCardText,
+  VCardTitle,
+  VCol,
   VContainer,
+  VDefaultsProvider,
   VDivider,
+  VFileInput,
+  VIcon,
   VImg,
+  VList,
+  VListItem,
+  VListItemSubtitle,
+  VListItemTitle,
+  VListSubheader,
   VMain,
   VNavigationDrawer,
   VNumberInput,
-  VTimePicker
+  VProgressLinear,
+  VRow,
+  VSlider,
+  VSpacer,
+  VTab,
+  VTabs,
+  VTextField,
+  VTimePicker,
+  VToolbar,
+  VTooltip,
+  VWindow
 } from 'vuetify/components'
-import { Ripple } from 'vuetify/directives'
+import { Ripple, Tooltip } from 'vuetify/directives'
+import { VIconBtn } from 'vuetify/labs/VIconBtn'
+import { VVideo, VVideoVolume } from 'vuetify/labs/VVideo'
 
 import 'vuetify/styles'
 
@@ -23,21 +51,59 @@ export function setupVuetify(app: App) {
       VApp,
 
       VNavigationDrawer,
+      VList,
+      VListItem,
+      VListItemTitle,
+      VListItemSubtitle,
+      VListSubheader,
       VDivider,
+
+      VSpacer,
 
       VMain,
       VContainer,
+      VCol,
+      VRow,
+
+      VTab,
+      VTabs,
+
+      VToolbar,
+
+      VWindow,
+
+      VCard,
+      VCardTitle,
+      VCardText,
+      VCardActions,
+      VCardSubtitle,
+      VCardItem,
 
       VBtn,
+      VIconBtn,
 
+      VIcon,
       VImg,
+      VVideo,
+      VDefaultsProvider,
+      VVideoVolume,
 
+      VTextField,
       VNumberInput,
+      VFileInput,
 
-      VTimePicker
+      VTimePicker,
+
+      VSlider,
+
+      VProgressLinear,
+
+      VAlert,
+      VTooltip
     },
     directives: {
-      Ripple
+      Ripple,
+      Tooltip
     },
     blueprint: md3,
     theme: {

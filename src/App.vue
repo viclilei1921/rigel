@@ -1,8 +1,9 @@
 <script setup lang="ts">
-import { onUnmounted, ref } from 'vue'
+import { ref } from 'vue'
+import AntDesignSettingOutlined from '~icons/ant-design/setting-outlined'
+import FileIconsFfmpeg from '~icons/file-icons/ffmpeg'
+import MdiHome from '~icons/mdi/home'
 import PhSidebarSimpleLight from '~icons/ph/sidebar-simple-light'
-
-import { trayWrapper } from './utils'
 
 const rail = ref(false)
 
@@ -11,10 +12,6 @@ const drawer = ref(true)
 function handleSidebar() {
   rail.value = !rail.value
 }
-
-onUnmounted(() => {
-  trayWrapper.destroy()
-})
 </script>
 
 <template>
@@ -24,12 +21,38 @@ onUnmounted(() => {
       :rail="rail"
       permanent
     >
-      <v-btn size="small" :icon="PhSidebarSimpleLight" @click="handleSidebar" />
+      <v-btn class=" ma-1" size="small" :icon="PhSidebarSimpleLight" @click="handleSidebar" />
       <v-divider />
-      <v-btn size="small">
-        11
-      </v-btn>
+      <v-list density="compact" nav>
+        <v-list-item
+          :prepend-icon="MdiHome"
+          title="Home"
+          value="home"
+          to="/"
+        />
+        <v-list-item
+          :prepend-icon="FileIconsFfmpeg"
+          title="FFmpeg"
+          value="ffmpeg"
+          to="/ffmpeg"
+        />
+        <v-list-item
+          :prepend-icon="AntDesignSettingOutlined"
+          title="Settings"
+          value="settings"
+          to="/settings"
+        />
+      </v-list>
     </v-navigation-drawer>
-    <RouterView />
+    <v-main class="fill-height">
+      <router-view />
+    </v-main>
   </v-app>
 </template>
+
+<style lang="less">
+#app {
+  width: 100vw;
+  height: 100vh;
+}
+</style>

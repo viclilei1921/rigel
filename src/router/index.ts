@@ -1,9 +1,12 @@
 import type { App } from 'vue'
-import type { NavigationGuardNext, RouteLocationNormalized, RouteRecordRaw } from 'vue-router'
+import type {
+  NavigationGuardNext,
+  RouteLocationNormalized,
+  RouteRecordRaw
+} from 'vue-router'
 
 import { createRouter, createWebHistory } from 'vue-router'
 
-import AboutPage from '../views/About.vue'
 import HomePage from '../views/Home.vue'
 
 /** ! 创建窗口后再跳转页面就会导致样式没有生效所以不能使用懒加载路由的方式，有些页面需要快速响应的就不需要懒加载 */
@@ -17,9 +20,31 @@ function getDesktopRoutes(): Array<RouteRecordRaw> {
       component: HomePage
     },
     {
-      path: '/about',
-      name: 'about',
-      component: AboutPage
+      path: '/ffmpeg',
+      component: () => import('../views/FFmpeg.vue'),
+      redirect: '/ffmpeg/convert',
+      children: [
+        {
+          path: 'convert',
+          component: () => import('../components/ffmpeg/ConvertView.vue')
+        },
+        {
+          path: 'highlight',
+          component: () => import('../components/ffmpeg/HighlightView.vue')
+        },
+        {
+          path: 'merge',
+          component: () => import('../components/ffmpeg/MergeView.vue')
+        },
+        {
+          path: 'edit',
+          component: () => import('../components/ffmpeg/EditView.vue')
+        }
+      ]
+    },
+    {
+      path: '/settings',
+      component: () => import('../views/Settings.vue')
     }
   ]
 }
@@ -30,13 +55,19 @@ const router = createRouter({
 })
 
 export function setupRouter(app: App) {
-  router.beforeEach(async (to: RouteLocationNormalized, _from: RouteLocationNormalized, next: NavigationGuardNext) => {
-    if (to.matched.length === 0) {
-      return { path: '/' }
-    }
+  router.beforeEach(
+    async (
+      to: RouteLocationNormalized,
+      _from: RouteLocationNormalized,
+      next: NavigationGuardNext
+    ) => {
+      if (to.matched.length === 0) {
+        return { path: '/' }
+      }
 
-    next()
-  })
+      next()
+    }
+  )
 
   app.use(router)
 }
