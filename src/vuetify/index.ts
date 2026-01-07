@@ -29,6 +29,7 @@ import {
   VNumberInput,
   VProgressLinear,
   VRow,
+  VSheet,
   VSlider,
   VSpacer,
   VTab,
@@ -71,6 +72,7 @@ export function setupVuetify(app: App) {
       VToolbar,
 
       VWindow,
+      VSheet,
 
       VCard,
       VCardTitle,
