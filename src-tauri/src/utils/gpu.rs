@@ -8,7 +8,6 @@ pub struct GpuInfo {
   pub device_type: String, // 如 "DiscreteGpu" 或 "IntegratedGpu" 等
 }
 
-#[tauri::command]
 pub async fn get_gpu_info() -> Result<Vec<GpuInfo>, String> {
   // 1. 创建实例，指定需要检测的后端（这里检测所有）
   let instance = Instance::new(&InstanceDescriptor {

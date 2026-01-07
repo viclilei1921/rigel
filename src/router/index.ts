@@ -43,6 +43,21 @@ function getDesktopRoutes(): Array<RouteRecordRaw> {
       ]
     },
     {
+      path: '/encryption',
+      component: () => import('../views/Encryption.vue'),
+      redirect: '/encryption/file',
+      children: [
+        {
+          path: 'file',
+          component: () => import('../components/encryption/FileView.vue')
+        },
+        {
+          path: 'video',
+          component: () => import('../components/encryption/VideoView.vue')
+        }
+      ]
+    },
+    {
       path: '/settings',
       component: () => import('../views/Settings.vue')
     }

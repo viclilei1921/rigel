@@ -43,8 +43,8 @@ struct CompletionPayload {
 /// 事件数据结构
 #[derive(Clone, Serialize, Deserialize)]
 pub struct TimeSegment {
-  pub start: String, // 格式 "00:00:10" 或 秒数 "10"
-  pub end: String,   // 格式 "00:00:20" 或 秒数 "20"
+  pub start: String, // 格式 "00:00:10.000" 或 秒数 "10"
+  pub duration: String,   // 格式 "00:00:20.000" 或 秒数 "20"
 }
 
 /// 编码器预设
@@ -337,18 +337,18 @@ pub async fn create_highlight_video(
     let temp_name = temp_dir.to_string_lossy().into_owned();
 
     let mut args = Vec::with_capacity(9 + best_args.len());
-    args.push("-i");
-    args.push(video_path);
     args.push("-ss");
     args.push(&seg.start);
-    args.push("-to");
-    args.push(&seg.end);
+    args.push("-i");
+    args.push(video_path);
+    args.push("-t");
+    args.push(&seg.duration);
     args.extend_from_slice(&best_args);
     args.push("-y");
     args.push(&temp_name);
     args.push("-hide_banner");
 
-    let duration = parse_duration_str(&seg.end).unwrap() - parse_duration_str(&seg.start).unwrap();
+    let duration = parse_duration_str(&seg.duration).unwrap();
 
     log::info!("ffmpeg {}", args.join(" "));
     let shell = app.shell();
@@ -363,7 +363,7 @@ pub async fn create_highlight_video(
               ProgressPayload {
                 progress: if duration > 0.0 { (current_time / duration) * 100.0 } else { 0.0 },
                 video_info: video_info.clone(),
-                message: format!("split segment {}: {}", seg.start, seg.end),
+                message: format!("split segment {}: {}", seg.start, seg.duration),
               },
             );
           }

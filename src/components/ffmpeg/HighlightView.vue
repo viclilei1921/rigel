@@ -92,7 +92,7 @@ async function handleHighlight() {
   await invoke('create_highlight_video', {
     videoPath: videoInfo.value.path,
     outputPath: outputPath.value,
-    segments: clips.value.map(({ start, end }) => ({ start: FormatTime(start), end: FormatTime(end) }))
+    segments: clips.value.map(({ start, end }) => ({ start: FormatTime(start), duration: FormatTime(end - start) }))
   }).catch((e) => {
     logger.error(e)
   })

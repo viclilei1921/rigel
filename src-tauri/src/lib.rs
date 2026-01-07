@@ -1,12 +1,14 @@
 // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
-pub mod converter;
+pub mod cmd;
 pub mod shell;
 pub mod utils;
 
 use chrono::{FixedOffset, Utc};
 use std::sync::OnceLock;
 use tauri::{
-  Manager, WindowEvent, menu::{Menu, MenuItem}, tray::{MouseButton, TrayIconBuilder, TrayIconEvent}
+  menu::{Menu, MenuItem},
+  tray::{MouseButton, TrayIconBuilder, TrayIconEvent},
+  Manager, WindowEvent,
 };
 
 use tauri_plugin_log::{Target, TargetKind};
@@ -68,8 +70,6 @@ pub fn run() {
               utils::window::focus_window(window);
             }
           }
-
-          
         })
         .build(app)?;
       Ok(())
@@ -112,10 +112,12 @@ pub fn run() {
     .plugin(tauri_plugin_os::init())
     .plugin(tauri_plugin_shell::init())
     .invoke_handler(tauri::generate_handler![
-      converter::svg_to_png::svg_to_png,
-      utils::files::open_cache_folder,
-      utils::files::reveal_in_explorer,
-      utils::gpu::get_gpu_info,
+      cmd::converter::svg_to_png,
+      cmd::system::open_cache_folder,
+      cmd::system::reveal_in_explorer,
+      cmd::system::get_gpu_info,
+      cmd::encrypt::encrypt_file,
+      cmd::encrypt::decrypt_file,
       shell::ffmpeg::convert_video_to_mp4,
       shell::ffmpeg::create_highlight_video,
       shell::ffmpeg::merge_smart,
