@@ -39,22 +39,26 @@ async function handleSelectVideo(select: string[]) {
   }
 }
 
-async function handleMerge() {
-  if (!videoArr.value.length) {
-    return
-  }
-
-  await invoke('merge_smart', {
-    inputs: videoArr.value.map(item => item.path),
-    outputPath: outputPath.value
+function handleOpenFolder() {
+  invoke('reveal_in_explorer', {
+    path: outputPath.value
   }).catch((e) => {
     logger.error(e)
   })
 }
 
-function handleOpenFolder() {
-  invoke('reveal_in_explorer', {
-    path: outputPath.value
+async function handleAppend() {
+  if (videoArr.value.length <= 1) {
+    return
+  }
+
+  const newInputs = videoArr.value.map(item => item.path)
+  newInputs.shift()
+
+  await invoke('append_smart', {
+    basePath: videoArr.value[0].path,
+    newInputs,
+    outputPath: outputPath.value
   }).catch((e) => {
     logger.error(e)
   })
@@ -89,8 +93,8 @@ onUnmounted(closeEvent)
 <template>
   <v-container>
     <v-card class="pa-4">
-      <v-card-title>视频合成</v-card-title>
-      <v-card-subtitle>使用 ffmpeg 将多个视频合成为一个视频, 并将视频名称绘制在左上角, 帧率使用中位数, 尺寸用最大尺寸</v-card-subtitle>
+      <v-card-title>视频追加</v-card-title>
+      <v-card-subtitle>使用 ffmpeg 将多个视频合成为一个视频, 以第一个视频为基准将后续视频处理(包括文件名绘制)后追加到第一个视频后</v-card-subtitle>
       <v-card-text>
         <SelectFile :multiple="true" @select="handleSelectVideo" />
       </v-card-text>
@@ -110,7 +114,7 @@ onUnmounted(closeEvent)
           color="primary"
           :loading="progress > 0 && progress < 100"
           :disabled="!videoArr.length"
-          @click="handleMerge"
+          @click="handleAppend"
         >
           开始合成
         </v-btn>

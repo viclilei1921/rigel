@@ -4,49 +4,40 @@ import type { UnlistenFn } from '@tauri-apps/api/event'
 import { onUnmounted, ref } from 'vue'
 import { invoke } from '@tauri-apps/api/core'
 import { listen } from '@tauri-apps/api/event'
-import { open } from '@tauri-apps/plugin-dialog'
-import FluentEmojiHighContrastOpenFileFolder from '~icons/fluent-emoji-high-contrast/open-file-folder'
+import MdiClose from '~icons/mdi/close'
+import MdiEye from '~icons/mdi/eye'
+import MdiEyeOff from '~icons/mdi/eye-off'
 
 import { logger } from '../../utils'
+import SelectFile from '../common/SelectFile.vue'
 
-const selecting = ref(false)
 const encrypting = ref(false)
 const encryptPassword = ref('')
+const encryptShowPassword = ref(false)
 const encryptFilePath = ref('')
 const encryptOutPath = ref('')
 const encryptProgress = ref(0)
 
 const decrypting = ref(false)
 const decryptPassword = ref('')
+const decryptShowPassword = ref(false)
 const decryptFilePath = ref('')
 const decryptOutPath = ref('')
 const decryptProgress = ref(0)
 
-async function handleSelectFileToEncrypt() {
-  if (selecting.value) {
+function handleSelectFileToEncrypt(select: string[]) {
+  if (select.length === 0) {
     return
   }
 
-  selecting.value = true
-  const selected = await open({
-    multiple: false,
-    filters: [
-      {
-        name: 'file',
-        extensions: ['*.*']
-      }
-    ]
-  })
+  encryptFilePath.value = select[0]
+  encryptOutPath.value = `${select[0]}.enc`
+}
 
-  if (!selected) {
-    selecting.value = false
-    return
-  }
-
-  encryptFilePath.value = selected
-  encryptOutPath.value = `${selected}.enc`
-
-  selecting.value = false
+function handleCloseEncrypt() {
+  encryptFilePath.value = ''
+  encryptOutPath.value = ''
+  encryptProgress.value = 0
 }
 
 async function handleEncrypt() {
@@ -63,35 +54,21 @@ async function handleEncrypt() {
   }).catch((e) => {
     logger.error(e)
   })
-
-  encrypting.value = false
 }
 
-async function handleSelectFileToDecrypt() {
-  if (selecting.value) {
+function handleSelectFileToDecrypt(select: string[]) {
+  if (select.length === 0) {
     return
   }
 
-  selecting.value = true
-  const selected = await open({
-    multiple: false,
-    filters: [
-      {
-        name: 'file',
-        extensions: ['*.*']
-      }
-    ]
-  })
+  decryptFilePath.value = select[0]
+  decryptOutPath.value = select[0].split('.').slice(0, -1).join('.')
+}
 
-  if (!selected) {
-    selecting.value = false
-    return
-  }
-
-  decryptFilePath.value = selected
-  decryptOutPath.value = selected.split('.').slice(0, -1).join('.')
-
-  selecting.value = false
+function handleCloseDecrypt() {
+  decryptFilePath.value = ''
+  decryptOutPath.value = ''
+  decryptProgress.value = 0
 }
 
 function handleDecrypt() {
@@ -108,26 +85,37 @@ function handleDecrypt() {
   }).catch((e) => {
     logger.error(e)
   })
-
-  decrypting.value = false
 }
 
 let unlistenProgress: UnlistenFn | null = null
+let unlistenError: UnlistenFn | null = null
 
 async function initEvent() {
   unlistenProgress = await listen('encrypt_progress', ({ payload }) => {
     if (encrypting.value) {
       encryptProgress.value = payload as number
+      if (payload === 100) {
+        encrypting.value = false
+      }
     }
 
     if (decrypting.value) {
       decryptProgress.value = payload as number
+
+      if (payload === 100) {
+        decrypting.value = false
+      }
     }
+  })
+
+  unlistenError = await listen('encrypt_error', ({ payload }) => {
+    logger.error(payload)
   })
 }
 
 function closeEvent() {
   unlistenProgress?.()
+  unlistenError?.()
 }
 
 initEvent()
@@ -141,19 +129,20 @@ onUnmounted(closeEvent)
       <v-card-title>加密文件</v-card-title>
       <v-card-subtitle>使用 chacha20 流式加密文件</v-card-subtitle>
       <v-card-text>
-        <v-btn
-          class="me-2" height="40" variant="flat" width="80" :icon="FluentEmojiHighContrastOpenFileFolder"
-          :loading="selecting"
-          @click="handleSelectFileToEncrypt"
-        />
+        <SelectFile v-if="!encryptFilePath" :multiple="false" extensions="*.*" @select="handleSelectFileToEncrypt" />
+        <div v-else class="d-flex">
+          <span class="text-body-1">{{ encryptFilePath }}</span>
+          <v-icon-btn class="ms-2 align-center" size="xl-smell" color="error" :icon="MdiClose" @click="handleCloseEncrypt" />
+        </div>
       </v-card-text>
       <v-card-item>
         <v-text-field
           v-model="encryptPassword"
-          class="mt-2"
-          type="password"
+          :append-inner-icon="encryptShowPassword ? MdiEye : MdiEyeOff"
+          :type="encryptShowPassword ? 'text' : 'password'"
           label="输入密码"
-          counter
+          variant="outlined"
+          @click:append-inner="encryptShowPassword = !encryptShowPassword"
         />
         <v-text-field v-model="encryptOutPath" label="输出路径 (可选)" placeholder="默认保存在原文件夹" variant="outlined" class="mt-4" />
         <v-container class="mt-0">
@@ -173,19 +162,20 @@ onUnmounted(closeEvent)
       <v-card-title>解密文件</v-card-title>
       <v-card-subtitle>使用 chacha20 流式解密文件</v-card-subtitle>
       <v-card-text>
-        <v-btn
-          class="me-2" height="40" variant="flat" width="80" :icon="FluentEmojiHighContrastOpenFileFolder"
-          :loading="selecting"
-          @click="handleSelectFileToDecrypt"
-        />
+        <SelectFile v-if="!decryptFilePath" :multiple="false" extensions="*.*" @select="handleSelectFileToDecrypt" />
+        <div v-else class="d-flex">
+          <span class="text-body-1">{{ decryptFilePath }}</span>
+          <v-icon-btn class="ms-2 align-center" size="xl-smell" color="error" :icon="MdiClose" @click="handleCloseDecrypt" />
+        </div>
       </v-card-text>
       <v-card-item>
         <v-text-field
           v-model="decryptPassword"
-          class="mt-2"
-          type="password"
+          :append-inner-icon="decryptShowPassword ? MdiEye : MdiEyeOff"
+          :type="decryptShowPassword ? 'text' : 'password'"
           label="输入密码"
-          counter
+          variant="outlined"
+          @click:append-inner="decryptShowPassword = !decryptShowPassword"
         />
         <v-text-field v-model="decryptOutPath" label="输出路径 (可选)" placeholder="默认保存在原文件夹" variant="outlined" class="mt-4" />
         <v-container class="mt-0">

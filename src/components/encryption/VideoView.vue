@@ -1,59 +1,98 @@
 <script setup lang="ts">
 import { ref } from 'vue'
-import { convertFileSrc } from '@tauri-apps/api/core'
-import { open } from '@tauri-apps/plugin-dialog'
-import FluentEmojiHighContrastOpenFileFolder from '~icons/fluent-emoji-high-contrast/open-file-folder'
-import MdiWindowClose from '~icons/mdi/window-close'
+import { invoke } from '@tauri-apps/api/core'
+import MdiClose from '~icons/mdi/close'
+import MdiExitToApp from '~icons/mdi/exit-to-app'
+import MdiEye from '~icons/mdi/eye'
+import MdiEyeOff from '~icons/mdi/eye-off'
 
-const selecting = ref(false)
+import { logger } from '../../utils'
+import SelectFile from '../common/SelectFile.vue'
+
 const videoPlayPath = ref('')
 
-async function handleSelectVideo() {
-  if (selecting.value) {
+const password = ref('')
+const showPassword = ref(false)
+
+const startServer = ref(false)
+const serverPath = ref('')
+
+async function handleSelectVideo(select: string[]) {
+  videoPlayPath.value = select[0]
+}
+
+function handleCloseVideoPath() {
+  videoPlayPath.value = ''
+}
+
+async function handleStartServer() {
+  if (startServer.value) {
     return
   }
 
-  selecting.value = true
-  const selected = await open({
-    multiple: false,
-    filters: [
-      {
-        name: 'Video',
-        extensions: ['*.*']
-      }
-    ]
+  startServer.value = true
+  const res = await invoke('start_video_stream', { password: password.value, path: videoPlayPath.value }).then(p => `${p}`).catch((e) => {
+    logger.error(e)
+    return null
   })
 
-  if (!selected) {
-    selecting.value = false
+  if (!res) {
+    startServer.value = false
     return
   }
 
-  videoPlayPath.value = convertFileSrc(selected)
+  serverPath.value = res
+  logger.info(res)
 
-  selecting.value = false
+  startServer.value = false
+}
+
+async function handleStopServer() {
+  await invoke('stop_video_stream').catch((e) => {
+    logger.error(e)
+  })
+
+  serverPath.value = ''
 }
 </script>
 
 <template>
   <v-container>
     <v-card class="pa-4">
-      <v-card-title>视频转换</v-card-title>
-      <v-card-subtitle>使用 ffmpeg 将视频转换为 mp4 格式</v-card-subtitle>
+      <v-card-title>播放加密视频</v-card-title>
+      <v-card-subtitle>使用rust在后端创建一个http服务, 用于播放加密视频</v-card-subtitle>
       <v-card-text>
-        <v-btn
-          class="me-2" height="40" variant="flat" width="80" :icon="FluentEmojiHighContrastOpenFileFolder"
-          :loading="selecting" @click="handleSelectVideo"
+        <SelectFile v-if="!videoPlayPath" class="mb-2" :multiple="false" extensions="*.*" @select="handleSelectVideo" />
+        <div v-else class="d-flex mb-2">
+          <span class="text-body-1">{{ videoPlayPath }}</span>
+          <v-icon-btn class="ms-2 align-center" size="xl-smell" color="error" :icon="MdiClose" @click="handleCloseVideoPath" />
+        </div>
+        <v-text-field
+          v-model="password"
+          :append-inner-icon="showPassword ? MdiEye : MdiEyeOff"
+          class="mt-2"
+          :type="showPassword ? 'text' : 'password'"
+          label="输入密码"
+          variant="outlined"
+          @click:append-inner="showPassword = !showPassword"
         />
       </v-card-text>
+      <v-card-actions>
+        <v-spacer />
+        <v-btn color="primary" :loading="startServer" :disabled="!password || !videoPlayPath" @click="handleStartServer">
+          开始播放
+        </v-btn>
+      </v-card-actions>
     </v-card>
-    <Teleport v-if="videoPlayPath" to="body">
+    <Teleport v-if="serverPath" to="body">
       <v-sheet class="video-body">
         <v-icon-btn
-          color="transparent" class="position-absolute top-0 right-0" :icon="MdiWindowClose"
-          @click="videoPlayPath = ''"
+          color="rgba(255, 255, 255, 0.3)" class="video-body-close" :icon="MdiExitToApp"
+          rounded="sm"
+          size="sm"
+          @click="handleStopServer"
         />
-        <video :src="videoPlayPath" controls width="100%" height="100%" />
+        <video :src="serverPath" controls width="100%" height="100%" />
       </v-sheet>
     </Teleport>
   </v-container>
@@ -68,5 +107,21 @@ async function handleSelectVideo() {
   width: 100vw;
   height: 100vh;
   background-color: black;
+
+  .video-body-close {
+    position: absolute;
+    z-index: 10;
+    top: 5px;
+    left: 5px;
+    display: none;
+    padding: 3px;
+    color: rgb(180 102 252);
+  }
+
+  &:hover {
+    .video-body-close {
+      display: flex;
+    }
+  }
 }
 </style>

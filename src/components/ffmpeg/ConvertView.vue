@@ -6,12 +6,11 @@ import type { VideoInfoType } from './type'
 import { onUnmounted, ref } from 'vue'
 import { invoke } from '@tauri-apps/api/core'
 import { listen } from '@tauri-apps/api/event'
-import { open } from '@tauri-apps/plugin-dialog'
-import FluentEmojiHighContrastOpenFileFolder from '~icons/fluent-emoji-high-contrast/open-file-folder'
 import MdiFolderOpenOutline from '~icons/mdi/folder-open-outline'
 import MiDelete from '~icons/mi/delete'
 
 import { logger } from '../../utils'
+import SelectFile from '../common/SelectFile.vue'
 import VideoInfo from './common/VideoInfo.vue'
 
 type VideoConvertType = VideoInfoType & {
@@ -21,56 +20,29 @@ type VideoConvertType = VideoInfoType & {
 }
 
 const videoArr = ref<VideoConvertType[]>([])
-const selecting = ref(false)
 const converting = ref(-1)
 
-async function handleSelectVideo() {
-  if (selecting.value) {
-    return
+async function handleSelectVideo(select: string[]) {
+  for (let i = 0; i < select.length; i++) {
+    const item = select[i]
+    const info = await invoke('get_video_info', {
+      videoPath: item
+    }).catch((e) => {
+      logger.error(e)
+      return null
+    })
+
+    if (!info) {
+      continue
+    }
+
+    videoArr.value.push({
+      outputPath: `${item.split('.').slice(0, -1).join('.')}_converted.mp4`,
+      message: '',
+      progress: 0,
+      ...info as VideoInfoType
+    })
   }
-
-  selecting.value = true
-  const selected = await open({
-    multiple: false,
-    filters: [
-      {
-        name: 'Video',
-        extensions: ['mp4', 'mov', 'avi', 'wmv', 'flv', 'mkv', 'webm', 'mpeg', 'mpg']
-      }
-    ]
-  })
-
-  if (!selected) {
-    selecting.value = false
-    return
-  }
-
-  if (videoArr.value.some(item => item.path === selected)) {
-    selecting.value = false
-    return
-  }
-
-  const info = await invoke('get_video_info', {
-    videoPath: selected
-  }).catch((e) => {
-    logger.error(e)
-    return null
-  })
-
-  if (!info) {
-    selecting.value = false
-    return
-  }
-
-  videoArr.value.push({
-    outputPath: `${selected.split('.').slice(0, -1).join('.')}_converted.mp4`,
-    message: '',
-    progress: 0,
-    ...info as VideoInfoType
-  })
-
-  selecting.value = false
-  // videoPlayPath.value = convertFileSrc(info.path)
 }
 
 async function handleConvert() {
@@ -146,11 +118,7 @@ onUnmounted(closeEvent)
       <v-card-title>视频转换</v-card-title>
       <v-card-subtitle>使用 ffmpeg 将视频转换为 mp4 格式</v-card-subtitle>
       <v-card-text>
-        <v-btn
-          class="me-2" height="40" variant="flat" width="80" :icon="FluentEmojiHighContrastOpenFileFolder"
-          :loading="selecting"
-          @click="handleSelectVideo"
-        />
+        <SelectFile :multiple="true" @select="handleSelectVideo" />
       </v-card-text>
       <v-card-item v-for="(video, index) of videoArr" :key="index" class="position-relative">
         <v-icon-btn color="error" class="position-absolute top-0 right-0" :icon="MiDelete" @click="videoArr.splice(index, 1)" />

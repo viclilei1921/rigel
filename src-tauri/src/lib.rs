@@ -4,7 +4,7 @@ pub mod shell;
 pub mod utils;
 
 use chrono::{FixedOffset, Utc};
-use std::sync::OnceLock;
+use std::sync::{Mutex, OnceLock};
 use tauri::{
   menu::{Menu, MenuItem},
   tray::{MouseButton, TrayIconBuilder, TrayIconEvent},
@@ -12,6 +12,8 @@ use tauri::{
 };
 
 use tauri_plugin_log::{Target, TargetKind};
+
+use crate::cmd::server::ServerState;
 
 /// 程序文件缓存路径
 static FILE_PATH: OnceLock<String> = OnceLock::new();
@@ -31,6 +33,9 @@ pub fn run() {
   init_file_path("rigel".to_string());
 
   tauri::Builder::default()
+    .manage(ServerState{
+      shutdown_tx: Mutex::new(None),
+    })
     .on_window_event(|window, event| {
       if let WindowEvent::CloseRequested { api, .. } = event {
         api.prevent_close();
@@ -118,9 +123,12 @@ pub fn run() {
       cmd::system::get_gpu_info,
       cmd::encrypt::encrypt_file,
       cmd::encrypt::decrypt_file,
+      cmd::server::start_video_stream,
+      cmd::server::stop_video_stream,
       shell::ffmpeg::convert_video_to_mp4,
       shell::ffmpeg::create_highlight_video,
       shell::ffmpeg::merge_smart,
+      shell::ffmpeg::append_smart,
       shell::ffmpeg::get_video_info
     ])
     .run(tauri::generate_context!())

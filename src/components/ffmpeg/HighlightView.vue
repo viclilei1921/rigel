@@ -6,13 +6,12 @@ import type { VideoInfoType } from './type'
 import { onUnmounted, ref } from 'vue'
 import { invoke } from '@tauri-apps/api/core'
 import { listen } from '@tauri-apps/api/event'
-import { open } from '@tauri-apps/plugin-dialog'
-import FluentEmojiHighContrastOpenFileFolder from '~icons/fluent-emoji-high-contrast/open-file-folder'
 import LineMdPlus from '~icons/line-md/plus'
 import MdiFolderOpenOutline from '~icons/mdi/folder-open-outline'
 import MiDelete from '~icons/mi/delete'
 
 import { FormatTime, logger } from '../../utils'
+import SelectFile from '../common/SelectFile.vue'
 import TimeInput from '../common/TimeInput.vue'
 import VideoInfo from './common/VideoInfo.vue'
 
@@ -29,28 +28,13 @@ const progress = ref(0)
 const message = ref('')
 const highlighting = ref(false)
 
-async function handleSelectVideo() {
-  if (selecting.value) {
-    return
-  }
-
-  selecting.value = true
-  const selected = await open({
-    multiple: false,
-    filters: [
-      {
-        name: 'Video',
-        extensions: ['mp4', 'mov', 'avi', 'wmv', 'flv', 'mkv', 'webm', 'mpeg', 'mpg']
-      }
-    ]
-  })
-
-  if (!selected) {
+async function handleSelectVideo(select: string[]) {
+  if (select.length === 0) {
     return
   }
 
   const info = await invoke('get_video_info', {
-    videoPath: selected
+    videoPath: select[0]
   }).catch((e) => {
     logger.error(e)
     return null
@@ -62,7 +46,7 @@ async function handleSelectVideo() {
   }
 
   videoInfo.value = info as VideoInfoType
-  outputPath.value = `${selected.split('.').slice(0, -1).join('.')}_.mp4`
+  outputPath.value = `${select[0].split('.').slice(0, -1).join('.')}_.mp4`
   selecting.value = false
 }
 
@@ -149,11 +133,7 @@ onUnmounted(closeEvent)
       <v-card-title>精彩剪辑合成</v-card-title>
       <v-card-subtitle>使用 ffmpeg 将视频中精彩部分提取出来合成为一个视频</v-card-subtitle>
       <v-card-text v-if="!videoInfo">
-        <v-btn
-          class="me-2" height="40" variant="flat" width="80" :icon="FluentEmojiHighContrastOpenFileFolder"
-          :loading="selecting"
-          @click="handleSelectVideo"
-        />
+        <SelectFile :multiple="false" @select="handleSelectVideo" />
       </v-card-text>
       <v-card-text v-if="videoInfo" class="position-relative">
         <v-icon-btn color="error" class="position-absolute top-0 right-0" :icon="MiDelete" @click="handleReset" />

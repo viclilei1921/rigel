@@ -30,7 +30,7 @@ pub fn get_cache_temp_dir<R: Runtime>(app: AppHandle<R>) -> Result<PathBuf, Stri
   Ok(dir)
 }
 
-pub fn get_file_size(path: &str) -> Result<u64, std::io::Error> {
+pub fn get_file_size(path: String) -> Result<u64, std::io::Error> {
   let metadata = fs::metadata(path).unwrap();
   Ok(metadata.len())
 }

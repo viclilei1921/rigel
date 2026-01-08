@@ -24,10 +24,10 @@ watch(() => route.path, (path) => {
           精彩剪辑
         </v-tab>
         <v-tab value="merge" to="/ffmpeg/merge" rounded="sm">
-          视频合成
+          视频合并
         </v-tab>
-        <v-tab value="edit" to="/ffmpeg/edit" rounded="sm">
-          视频剪辑
+        <v-tab value="edit" to="/ffmpeg/append" rounded="sm">
+          视频追加
         </v-tab>
       </v-tabs>
     </v-toolbar>

@@ -5,7 +5,8 @@ use argon2::Argon2;
 
 use rand::RngCore;
 
-const NONCE: &[u8; 12] = b"unique-nonce";
+/// NONCE: 12 bytes 这个不能修改
+const NONCE: &[u8; 12] = b"unique-vicli";
 pub const SALT_LEN: usize = 16;
 
 pub fn derive_key(password: &str, salt: &[u8]) -> [u8; 32] {

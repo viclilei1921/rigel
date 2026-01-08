@@ -37,8 +37,8 @@ function getDesktopRoutes(): Array<RouteRecordRaw> {
           component: () => import('../components/ffmpeg/MergeView.vue')
         },
         {
-          path: 'edit',
-          component: () => import('../components/ffmpeg/EditView.vue')
+          path: 'append',
+          component: () => import('../components/ffmpeg/AppendView.vue')
         }
       ]
     },

@@ -43,8 +43,8 @@ struct CompletionPayload {
 /// 事件数据结构
 #[derive(Clone, Serialize, Deserialize)]
 pub struct TimeSegment {
-  pub start: String, // 格式 "00:00:10.000" 或 秒数 "10"
-  pub duration: String,   // 格式 "00:00:20.000" 或 秒数 "20"
+  pub start: String,    // 格式 "00:00:10.000" 或 秒数 "10"
+  pub duration: String, // 格式 "00:00:20.000" 或 秒数 "20"
 }
 
 /// 编码器预设
@@ -60,13 +60,70 @@ enum EncoderPreset {
 impl EncoderPreset {
   /// 将编码器预设转换为 FFmpeg 参数
   fn to_ffmpeg_args(&self) -> Vec<&str> {
-    match self {
-      EncoderPreset::Nvidia(name) => vec!["-c:v", name.as_str(), "-cq", "28", "-c:a", "aac", "-ac", "2"], // N卡参数
-      EncoderPreset::Intel(name) => vec!["-c:v", name.as_str(), "-global_quality", "25", "-c:a", "aac", "-ac", "2"], // Intel参数
-      EncoderPreset::Apple(name) => vec!["-c:v", name.as_str(), "-q:v", "60", "-c:a", "aac", "-ac", "2"], // Apple参数
-      EncoderPreset::Amd(name) => vec!["-c:v", name.as_str(), "-c:a", "aac", "-ac", "2"],                 // A卡参数
-      EncoderPreset::Cpu(name) => vec!["-c:v", name.as_str(), "-crf", "28", "-c:a", "aac", "-ac", "2"],   // CPU参数
-    }
+    // 1. 基础兼容性参数 (所有编码器通用)
+    // -pix_fmt yuv420p: 强制 8位 色深，防止转码成 10位 导致浏览器黑屏
+    // -tag:v hvc1: 苹果生态 (Safari/Finder) 识别 HEVC 的必要标签
+    let common_args = vec!["-c:a", "aac", "-ac", "2", "-pix_fmt", "yuv420p", "-tag:v", "hvc1"];
+
+    // 2. 根据硬件添加特定编码参数
+    let encoder_args = match self {
+      EncoderPreset::Nvidia(name) => vec![
+        "-c:v",
+        name.as_str(),
+        // -cq: 恒定质量模式 (Constant Quality), 范围 1-51, 越小越清晰
+        "-cq",
+        "28",
+        // -preset: p1(最快)-p7(最慢/质量最好), p4 是平衡点
+        "-preset",
+        "p4",
+      ],
+      EncoderPreset::Intel(name) => vec![
+        "-c:v",
+        name.as_str(),
+        // -global_quality: ICQ 模式, 类似 CRF
+        "-global_quality",
+        "25",
+        "-load_plugin",
+        "hevc_hw", // 显式加载插件有时能避免报错
+      ],
+      EncoderPreset::Apple(name) => vec![
+        "-c:v",
+        name.as_str(),
+        // -q:v: 质量控制, 0-100, 这里的 60 大约对应 CRF 26-28
+        "-q:v",
+        "60",
+        // 确保 Apple 编码器不自动用 10bit
+        "-profile:v",
+        "main",
+      ],
+      EncoderPreset::Amd(name) => vec![
+        "-c:v",
+        name.as_str(),
+        // AMD AMF 比较特殊，通常用 -rc cqp 来控制质量
+        "-usage",
+        "transcoding",
+        "-rc",
+        "cqp",
+        "-qp_i",
+        "28",
+        "-qp_p",
+        "28",
+      ],
+      EncoderPreset::Cpu(name) => vec![
+        "-c:v",
+        name.as_str(),
+        // -crf: 软件编码标准质量控制
+        "-crf",
+        "28",
+        // -preset: medium 是默认, fast 编码更快
+        "-preset",
+        "medium",
+      ],
+    };
+
+    // 3. 转换 Vec<&str> 为 Vec<String> 并合并
+
+    [&common_args[..], &encoder_args[..]].concat()
   }
 }
 
@@ -479,7 +536,7 @@ pub async fn merge_smart(app: AppHandle, inputs: Vec<&str>, output_path: &str) -
     let clean_name = filename.replace(":", "\\:").replace("'", "");
     let target_w_f: f64 = target_w as f64;
     let target_h_f: f64 = target_h as f64;
-    
+
     let font_size = 24.0 * target_w_f / 1920.0;
     let x = 10.0 * target_w_f / 1920.0;
     let y = 10.0 * target_h_f / 1080.0;
@@ -570,6 +627,198 @@ pub async fn merge_smart(app: AppHandle, inputs: Vec<&str>, output_path: &str) -
         break;
       }
       _ => {}
+    }
+  }
+
+  Ok(())
+}
+
+/// 智能追加视频 (防卡顿优化版)
+/// 策略：MP4 -> TS -> Concat -> MP4
+/// 1. Base Video -> Remux to .ts (不重编码，超快)
+/// 2. New Videos -> Transcode to .ts (统一参数)
+/// 3. Concat all .ts files -> Remux to .mp4
+#[tauri::command]
+pub async fn append_smart(
+  app: AppHandle,
+  base_path: &str,
+  new_inputs: Vec<&str>,
+  output_path: &str,
+) -> Result<(), String> {
+  if new_inputs.is_empty() {
+    return Err("no new videos to append".to_string());
+  }
+
+  let base_info = get_video_info(app.clone(), base_path).await?;
+  let temp_dir = get_cache_temp_dir(app.clone())?;
+  let mut ts_files: Vec<String> = Vec::new();
+
+  // ==========================================
+  // 步骤 1: 将基准视频无损封装为 TS (Remux)
+  // ==========================================
+  let base_ts_path = temp_dir.join("part_base.ts").to_string_lossy().into_owned();
+
+  // 确定比特流过滤器 (Bitstream Filter)
+  // MP4 转 TS 需要将数据从 AVCC/HVCC 转换为 Annex-B 格式，否则会黑屏或报错
+  let bsf_filter = if base_info.video_codec.contains("hevc") || base_info.video_codec.contains("h265") {
+    "hevc_mp4toannexb"
+  } else {
+    "h264_mp4toannexb"
+  };
+
+  let remux_args = vec![
+    "-i",
+    base_path,
+    "-c",
+    "copy", // 核心：只复制流，不重新编码
+    "-bsf:v",
+    bsf_filter, // 关键：解决卡顿和兼容性的核心参数
+    "-f",
+    "mpegts",
+    "-y",
+    &base_ts_path,
+    "-hide_banner",
+  ];
+
+  log::info!("Remuxing base to TS...");
+  let shell = app.shell();
+  let (mut rx, _) = shell.command("ffmpeg").args(remux_args).spawn().map_err(|e| e.to_string())?;
+
+  // 等待基准视频处理完成
+  while let Some(event) = rx.recv().await {
+    if let CommandEvent::Terminated(status) = event {
+      if status.code != Some(0) {
+        return Err("Failed to remux base video".to_string());
+      }
+      break;
+    }
+  }
+  ts_files.push(base_ts_path);
+
+  // ==========================================
+  // 步骤 2: 处理新视频并转码为 TS
+  // ==========================================
+  let gpus = get_gpu_info().await.unwrap();
+  let best = select_best_encoder(&gpus);
+  let best_args = best.to_ffmpeg_args();
+  let font_path = get_default_font_path();
+
+  for (i, input_path) in new_inputs.iter().enumerate() {
+    let current_ts_path = temp_dir.join(format!("part_new_{}.ts", i)).to_string_lossy().into_owned();
+    let input_info = get_video_info(app.clone(), input_path).await.unwrap_or_default();
+
+    // 画面处理滤镜 (同之前逻辑)
+    let filename = Path::new(input_path).file_name().unwrap().to_string_lossy();
+    let clean_name = filename.replace(":", "\\:").replace("'", "");
+    let target_w_f = base_info.width as f64;
+    let target_h_f = base_info.height as f64;
+    let font_size = 24.0 * target_w_f / 1920.0;
+    let x = 10.0 * target_w_f / 1920.0;
+    let y = 10.0 * target_h_f / 1080.0;
+    let sample_rate = if base_info.audio_sample_rate > 0 { base_info.audio_sample_rate } else { 48000 };
+
+    let drawtext = format!(
+      ",drawtext=fontfile={}:text={}:fontcolor=white:fontsize={}:x={}:y={}:box=1:boxcolor=black@0.0",
+      font_path, clean_name, font_size as u32, x as u32, y as u32
+    );
+
+    let filter_complex = format!(
+            "[0:v]fps={fps},scale='trunc(iw*sar/2)*2':'trunc(ih/2)*2',setsar=1,scale={w}:{h}:force_original_aspect_ratio=decrease,pad={w}:{h}:(ow-iw)/2:(oh-ih)/2,setsar=1{text}[v];[0:a]aresample={ar},aformat=sample_fmts=fltp:channel_layouts=stereo[a]",
+            fps = base_info.fps, w = base_info.width, h = base_info.height, text = drawtext, ar = sample_rate
+        );
+
+    let mut args = vec!["-i", input_path, "-filter_complex", &filter_complex, "-map", "[v]", "-map", "[a]"];
+
+    // 编码参数
+    args.extend_from_slice(&best_args);
+
+    // TS 特定参数
+    args.push("-bsf:v");
+    args.push(bsf_filter); // 同样应用 Annex-B 滤镜
+    args.push("-f");
+    args.push("mpegts");
+    args.push("-y");
+    args.push(&current_ts_path);
+    args.push("-hide_banner");
+
+    log::info!("Transcoding part {} to TS...", i);
+    let shell = app.shell();
+    let (mut rx, _) = shell.command("ffmpeg").args(args).spawn().map_err(|e| e.to_string())?;
+
+    while let Some(event) = rx.recv().await {
+      match event {
+        CommandEvent::Stderr(line) => {
+          if let Some(current_time) = parse_time_from_ffmpeg_output(&line) {
+            let progress = if input_info.duration > 0.0 { (current_time / input_info.duration) * 100.0 } else { 0.0 };
+            let _ = app.emit(
+              "ffmpeg-progress",
+              ProgressPayload {
+                progress,
+                video_info: input_info.clone(),
+                message: format!("Processing part {}/{}", i + 1, new_inputs.len()),
+              },
+            );
+          }
+        }
+        CommandEvent::Terminated(status) => {
+          if status.code == Some(0) {
+            ts_files.push(current_ts_path.clone());
+          }
+          break;
+        }
+        _ => {}
+      }
+    }
+  }
+
+  // ==========================================
+  // 步骤 3: Concat 协议合并所有 TS 并转回 MP4
+  // ==========================================
+  // 这里的 concat 字符串格式为: "concat:part1.ts|part2.ts|part3.ts"
+  // 注意：TS 文件可以直接用 concat: 协议，不需要创建列表文件，但文件多时列表文件更安全
+  // 既然我们已经有文件系统操作，还是用列表文件最稳妥 (-f concat)
+
+  let list_file_name = temp_dir.join("ts_concat_list.txt");
+  let mut list_file = File::create(&list_file_name).map_err(|e| e.to_string())?;
+  for path in &ts_files {
+    writeln!(list_file, "file '{}'", path.replace("'", "'\\''")).map_err(|e| e.to_string())?;
+  }
+  list_file.flush().map_err(|e| e.to_string())?;
+
+  let list_file_path_str = list_file_name.to_string_lossy().into_owned();
+
+  // 合并并转回 MP4
+  let concat_args = vec![
+    "-f",
+    "concat",
+    "-safe",
+    "0",
+    "-i",
+    &list_file_path_str,
+    "-c",
+    "copy", // 此时 TS 到 MP4 也是流复制，不重编码
+    "-bsf:a",
+    "aac_adtstoasc", // 关键：TS 中的 AAC 转换回 MP4 需要这个滤镜修复音频头
+    "-y",
+    output_path,
+    "-hide_banner",
+  ];
+
+  log::info!("Final merge (TS -> MP4)...");
+  let shell = app.shell();
+  let (mut rx, _) = shell.command("ffmpeg").args(concat_args).spawn().map_err(|e| e.to_string())?;
+
+  while let Some(event) = rx.recv().await {
+    if let CommandEvent::Terminated(status) = event {
+      // 清理
+      let _ = std::fs::remove_file(list_file_name);
+      for tmp in ts_files {
+        let _ = std::fs::remove_file(tmp);
+      }
+      let _ = std::fs::remove_dir(temp_dir);
+
+      let _ = app.emit("ffmpeg-complete", CompletionPayload { code: status.code });
+      break;
     }
   }
 
