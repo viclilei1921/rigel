@@ -797,6 +797,8 @@ pub async fn append_smart(
     &list_file_path_str,
     "-c",
     "copy", // 此时 TS 到 MP4 也是流复制，不重编码
+    "-tag:v",
+    "hvc1",
     "-bsf:a",
     "aac_adtstoasc", // 关键：TS 中的 AAC 转换回 MP4 需要这个滤镜修复音频头
     "-y",
@@ -806,7 +808,8 @@ pub async fn append_smart(
 
   log::info!("Final merge (TS -> MP4)...");
   let shell = app.shell();
-  let (mut rx, _) = shell.command("ffmpeg").args(concat_args).spawn().map_err(|e| e.to_string())?;
+  let (mut rx, _) =
+    shell.command("ffmpeg").args(concat_args).spawn().map_err(|e: tauri_plugin_shell::Error| e.to_string())?;
 
   while let Some(event) = rx.recv().await {
     if let CommandEvent::Terminated(status) = event {

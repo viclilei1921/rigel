@@ -79,6 +79,7 @@
     "Vite",
     "Vuetify",
     "vueuse",
-    "wgpu"
+    "wgpu",
+    "wscript"
   ]
 }
