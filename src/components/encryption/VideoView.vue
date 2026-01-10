@@ -1,13 +1,15 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { inject, ref, watch } from 'vue'
 import { invoke } from '@tauri-apps/api/core'
 import MdiClose from '~icons/mdi/close'
-import MdiExitToApp from '~icons/mdi/exit-to-app'
 import MdiEye from '~icons/mdi/eye'
 import MdiEyeOff from '~icons/mdi/eye-off'
 
 import { logger } from '../../utils'
+import { VIDEO_PLAYER_KEY } from '../../utils/Constant'
 import SelectFile from '../common/SelectFile.vue'
+
+const videoPlayerInfo = inject(VIDEO_PLAYER_KEY)!
 
 const videoPlayPath = ref('')
 
@@ -42,7 +44,9 @@ async function handleStartServer() {
   }
 
   serverPath.value = res
-  logger.info(res)
+
+  videoPlayerInfo.value.url = serverPath.value
+  videoPlayerInfo.value.show = true
 
   startServer.value = false
 }
@@ -54,6 +58,12 @@ async function handleStopServer() {
 
   serverPath.value = ''
 }
+
+watch(() => videoPlayerInfo.value.show, () => {
+  if (!videoPlayerInfo.value.show) {
+    handleStopServer()
+  }
+})
 </script>
 
 <template>
@@ -84,44 +94,5 @@ async function handleStopServer() {
         </v-btn>
       </v-card-actions>
     </v-card>
-    <Teleport v-if="serverPath" to="body">
-      <v-sheet class="video-body">
-        <v-icon-btn
-          color="rgba(255, 255, 255, 0.3)" class="video-body-close" :icon="MdiExitToApp"
-          rounded="sm"
-          size="sm"
-          @click="handleStopServer"
-        />
-        <video :src="serverPath" controls width="100%" height="100%" />
-      </v-sheet>
-    </Teleport>
   </v-container>
 </template>
-
-<style lang="less" scoped>
-.video-body {
-  position: fixed;
-  z-index: 9999;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-  background-color: black;
-
-  .video-body-close {
-    position: absolute;
-    z-index: 10;
-    top: 5px;
-    left: 5px;
-    display: none;
-    padding: 3px;
-    color: rgb(180 102 252);
-  }
-
-  &:hover {
-    .video-body-close {
-      display: flex;
-    }
-  }
-}
-</style>

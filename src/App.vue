@@ -1,10 +1,22 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import type { VideoPlayerInfoType } from './types/video'
+
+import { provide, ref } from 'vue'
 import AntDesignSettingOutlined from '~icons/ant-design/setting-outlined'
 import FileIconsFfmpeg from '~icons/file-icons/ffmpeg'
 import MdiEncryptionOutline from '~icons/mdi/encryption-outline'
 import MdiHome from '~icons/mdi/home'
 import PhSidebarSimpleLight from '~icons/ph/sidebar-simple-light'
+
+import VideoPlay from './components/common/VideoPlay.vue'
+import { VIDEO_PLAYER_KEY } from './utils/Constant'
+
+const videoPlayerInfo = ref<VideoPlayerInfoType>({
+  url: '',
+  show: false
+})
+
+provide(VIDEO_PLAYER_KEY, videoPlayerInfo)
 
 const rail = ref(false)
 
@@ -55,6 +67,7 @@ function handleSidebar() {
       <router-view />
     </v-main>
   </v-app>
+  <VideoPlay />
 </template>
 
 <style lang="less">

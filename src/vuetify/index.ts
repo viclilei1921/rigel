@@ -25,6 +25,7 @@ import {
   VListItemTitle,
   VListSubheader,
   VMain,
+  VMenu,
   VNavigationDrawer,
   VNumberInput,
   VProgressLinear,
@@ -42,7 +43,7 @@ import {
 } from 'vuetify/components'
 import { Ripple, Tooltip } from 'vuetify/directives'
 import { VIconBtn } from 'vuetify/labs/VIconBtn'
-import { VVideo, VVideoVolume } from 'vuetify/labs/VVideo'
+import { VVideo } from 'vuetify/labs/VVideo'
 
 import 'vuetify/styles'
 
@@ -88,7 +89,6 @@ export function setupVuetify(app: App) {
       VImg,
       VVideo,
       VDefaultsProvider,
-      VVideoVolume,
 
       VTextField,
       VNumberInput,
@@ -101,7 +101,9 @@ export function setupVuetify(app: App) {
       VProgressLinear,
 
       VAlert,
-      VTooltip
+      VTooltip,
+
+      VMenu
     },
     directives: {
       Ripple,
