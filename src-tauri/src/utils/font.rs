@@ -5,24 +5,31 @@ pub fn get_default_font_path() -> String {
   // 候选列表：根据不同系统，按优先级尝试字体
   let candidates = if cfg!(target_os = "windows") {
     vec![
-      r"C:\Windows\Fonts\arial.ttf",   // 首选 Arial
-      r"C:\Windows\Fonts\segoeui.ttf", // 备选 Segoe UI (Win10/11 默认)
-      r"C:\Windows\Fonts\tahoma.ttf",
-      r"C:\Windows\Fonts\msyh.ttf", // 微软雅黑 (如果想要中文支持首选这个)
+      // 优先级 1: 微软雅黑 (Windows 默认中文 UI 字体，通常是 .ttc)
+      r"C:\Windows\Fonts\msyh.ttc",
+      // 优先级 2: 微软雅黑 (旧版 Windows 可能是 .ttf)
+      r"C:\Windows\Fonts\msyh.ttf",
+      // 优先级 3: 黑体 (备用中文)
+      r"C:\Windows\Fonts\simhei.ttf",
+      // 优先级 4: Segoe UI (英文 UI 字体，可能含少量中文，但不全)
+      r"C:\Windows\Fonts\segoeui.ttf",
+      // 优先级 5: Arial (仅英文，最后兜底)
+      r"C:\Windows\Fonts\arial.ttf",
     ]
   } else if cfg!(target_os = "macos") {
     vec![
+      "/System/Library/Fonts/PingFang.ttc", // 苹方 (中文首选)
+      "/Library/Fonts/Arial Unicode.ttf",   // Arial Unicode (含中文)
+      "/System/Library/Fonts/STHeiti Light.ttc",
       "/System/Library/Fonts/Helvetica.ttc",
-      "/Library/Fonts/Arial.ttf",
-      "/System/Library/Fonts/PingFang.ttc", // 中文支持
     ]
   } else {
-    // Linux
+    // Linux (建议安装 google-noto-cjk)
     vec![
+      "/usr/share/fonts/noto-cjk/NotoSansCJK-Regular.ttc",
+      "/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc",
+      "/usr/share/fonts/truetype/wqy/wqy-microhei.ttc", // 文泉驿微米黑
       "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
-      "/usr/share/fonts/TTF/DejaVuSans.ttf",
-      "/usr/share/fonts/gnu-free/FreeSans.ttf",
-      "/usr/share/fonts/noto/NotoSans-Regular.ttf",
     ]
   };
 

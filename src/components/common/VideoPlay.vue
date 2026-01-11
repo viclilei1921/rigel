@@ -129,6 +129,8 @@ function handleKeyDown(e: KeyboardEvent) {
       video.requestFullscreen()
       break
     case 'Escape':
+    case 'q':
+    case 'Q':
       info.value.show = false
       break
   }
@@ -189,13 +191,13 @@ watch(() => info.value.show, () => {
 init()
 
 onMounted(() => {
-  window.addEventListener('keydown', handleKeyDown, true)
-  window.addEventListener('keyup', handleKeyUp, true)
+  window.addEventListener('keydown', handleKeyDown, false)
+  window.addEventListener('keyup', handleKeyUp, false)
 })
 
 onUnmounted(() => {
-  window.removeEventListener('keydown', handleKeyDown, true)
-  window.removeEventListener('keyup', handleKeyUp, true)
+  window.removeEventListener('keydown', handleKeyDown, false)
+  window.removeEventListener('keyup', handleKeyUp, false)
 })
 </script>
 
@@ -320,7 +322,7 @@ onUnmounted(() => {
   height: 100px;
   min-height: 100px;
 
-  &.v-input--vertical>.v-input__control {
+  &.v-slider.v-input--vertical>.v-input__control {
     height: 100px;
     min-height: 100px;
   }
