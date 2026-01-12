@@ -5,6 +5,7 @@ import { provide, ref } from 'vue'
 import AntDesignSettingOutlined from '~icons/ant-design/setting-outlined'
 import FileIconsFfmpeg from '~icons/file-icons/ffmpeg'
 import MdiEncryptionOutline from '~icons/mdi/encryption-outline'
+import MdiFileImage from '~icons/mdi/file-image'
 import MdiHome from '~icons/mdi/home'
 import PhSidebarSimpleLight from '~icons/ph/sidebar-simple-light'
 
@@ -54,6 +55,12 @@ function handleSidebar() {
           title="Encryption"
           value="encryption"
           to="/encryption"
+        />
+        <v-list-item
+          :prepend-icon="MdiFileImage"
+          title="Image"
+          value="image"
+          to="/image"
         />
         <v-list-item
           :prepend-icon="AntDesignSettingOutlined"

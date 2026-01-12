@@ -13,6 +13,12 @@ use crate::utils::{
   gpu::{get_gpu_info, GpuInfo},
 };
 
+// HACK 后续可以将ffmpeg封装成一个结构体, 生成一个任务队列, 并有序的执行ffmpeg命令
+// 任务也是一个结构体包含命令集合、任务状态等信息
+// 最后在主线程中循环处理任务队列
+// 前端调用方法将任务注入任务队列, 前端直接展示整个任务列表以及任务进度等
+// 这样前端可以更好的控制任务队列
+
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
 pub struct VideoInfo {
   pub path: String,

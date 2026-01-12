@@ -74,6 +74,7 @@
     "Unlisten",
     "unmaximize",
     "unminimize",
+    "unorm",
     "unplugin",
     "usvg",
     "vcodec",
@@ -82,6 +83,7 @@
     "Vite",
     "Vuetify",
     "vueuse",
+    "webgpu",
     "wgpu",
     "wscript"
   ]

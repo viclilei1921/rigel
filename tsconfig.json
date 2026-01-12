@@ -10,7 +10,8 @@
     "moduleResolution": "bundler",
     "resolveJsonModule": true,
     "types": [
-      "unplugin-icons/types/vue"
+      "unplugin-icons/types/vue",
+      "@webgpu/types"
     ],
     "allowImportingTsExtensions": true,
 

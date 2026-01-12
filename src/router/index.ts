@@ -58,6 +58,17 @@ function getDesktopRoutes(): Array<RouteRecordRaw> {
       ]
     },
     {
+      path: '/image',
+      component: () => import('../views/Image.vue'),
+      redirect: '/image/player',
+      children: [
+        {
+          path: 'player',
+          component: () => import('../components/image/ImageView.vue')
+        }
+      ]
+    },
+    {
       path: '/settings',
       component: () => import('../views/Settings.vue')
     }
