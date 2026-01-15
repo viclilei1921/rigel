@@ -99,16 +99,16 @@
     onpointerleave={() => (showControls = false)}
   >
     <div
-      class="absolute top-0 right-0 left-0 z-20 p-4 transition-opacity duration-300 {showControls
+      class="absolute top-0 right-0 left-0 z-20 p-2 transition-opacity duration-300 {showControls
         ? 'opacity-100'
         : 'opacity-0'}"
     >
       <button
         onclick={() => player.close()}
-        class="rounded-full bg-black/20 p-2 text-blue-500 transition-colors hover:bg-black/40"
+        class="flex items-center justify-center size-8 rounded-md cursor-pointer bg-black/10 text-blue-500 transition-colors hover:bg-black/20"
         aria-label="返回"
       >
-        <LineMdArrowSmallLeft class="text-2xl" />
+        <LineMdArrowSmallLeft class="size-5" />
       </button>
     </div>
 
@@ -128,11 +128,11 @@
     </video>
 
     <div
-      class="absolute right-0 bottom-0 left-0 z-20 bg-linear-to-t from-black/80 to-transparent px-6 pt-10 pb-6 transition-opacity duration-300 {showControls
+      class="absolute right-0 bottom-0 left-0 z-20 bg-linear-to-t from-black/80 to-transparent px-6 pt-10 pb-3 transition-opacity duration-300 {showControls
         ? 'opacity-100'
         : 'opacity-0'}"
     >
-      <div class="group relative mb-4 flex items-center">
+      <div class="group relative mb-2 flex items-center">
         <input
           type="range"
           min="0"
@@ -188,7 +188,7 @@
 
         <div
           role="contentinfo"
-          class="group relative flex items-center gap-2"
+          class="group relative flex items-center gap-2 overflow-hidden"
           onmouseenter={() => (showVolumeSlider = true)}
           onmouseleave={() => (showVolumeSlider = false)}
         >
