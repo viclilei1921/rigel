@@ -1,94 +1,92 @@
-import { attachConsole, error, info, trace, warn } from '@tauri-apps/plugin-log'
+import { attachConsole, error, info, trace, warn } from '@tauri-apps/plugin-log';
 
 class LoggerWrapper {
-  private _initState: 0 | 1 | 2 = 0
-  private _isDev = import.meta.env.DEV
+  private _initState: 0 | 1 | 2 = 0;
+  private _isDev = import.meta.env.DEV;
 
   public async init() {
     if (this._initState !== 0) {
-      return
+      return;
     }
 
-    this._initState = 1
-    const detach = await attachConsole()
-    detach()
+    this._initState = 1;
+    const detach = await attachConsole();
+    detach();
 
-    this._initState = 2
+    this._initState = 2;
   }
 
   public trace(...args: unknown[]) {
     if (this._initState === 2 && !this._isDev) {
-      trace(args.map(this._formatArg).join(' '))
-      return
+      trace(args.map(this._formatArg).join(' '));
+      return;
     }
 
-    // eslint-disable-next-line no-console
-    console.trace(...args)
+    console.trace(...args);
   }
 
   public info(...args: unknown[]) {
     if (this._initState === 2 && !this._isDev) {
-      info(args.map(this._formatArg).join(' '))
-      return
+      info(args.map(this._formatArg).join(' '));
+      return;
     }
 
-    // eslint-disable-next-line no-console
-    console.log(...args)
+    console.log(...args);
   }
 
   public warn(...args: unknown[]) {
     if (this._initState === 2 && !this._isDev) {
-      warn(args.map(this._formatArg).join(' '))
-      return
+      warn(args.map(this._formatArg).join(' '));
+      return;
     }
 
-    console.warn(...args)
+    console.warn(...args);
   }
 
   public error(...args: unknown[]) {
     if (this._initState === 2 && !this._isDev) {
-      error(args.map(this._formatArg).join(' '))
-      return
+      error(args.map(this._formatArg).join(' '));
+      return;
     }
 
-    console.error(...args)
+    console.error(...args);
   }
 
   private _formatArg(arg: unknown): string {
     if (arg === null) {
-      return 'null'
+      return 'null';
     }
     if (arg === undefined) {
-      return 'undefined'
+      return 'undefined';
     }
 
-    const type = typeof arg
+    const type = typeof arg;
 
     switch (type) {
       case 'string':
-        return arg as string
+        return arg as string;
       case 'number':
       case 'boolean':
       case 'bigint':
       case 'symbol':
-        return String(arg)
+        return String(arg);
       case 'object':
         try {
           if (Array.isArray(arg)) {
-            return `[${(arg as unknown[]).map(item => this._formatArg(item)).join(', ')}]`
+            return `[${(arg as unknown[]).map((item) => this._formatArg(item)).join(', ')}]`;
           }
-          return JSON.stringify(arg, null, 2)
+          return JSON.stringify(arg, null, 2);
         } catch {
-          return `[object ${(arg as object).constructor?.name || 'Object'}]`
+          return `[object ${(arg as object).constructor?.name || 'Object'}]`;
         }
       case 'function':
-        // eslint-disable-next-line ts/no-unsafe-function-type
-        return `[Function: ${(arg as Function).name || 'anonymous'}]`
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
+        return `[Function: ${(arg as Function).name || 'anonymous'}]`;
       default:
-        return String(arg)
+        return String(arg);
     }
   }
 }
 
 /** 日志系统 */
-export const logger = new LoggerWrapper()
+export const logger = new LoggerWrapper();

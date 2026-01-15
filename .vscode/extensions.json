@@ -1,7 +1,11 @@
 {
   "recommendations": [
-    "Vue.volar",
+    "svelte.svelte-vscode",
+    "bradlc.vscode-tailwindcss",
+    "dbaeumer.vscode-eslint",
     "tauri-apps.tauri-vscode",
-    "rust-lang.rust-analyzer"
+    "rust-lang.rust-analyzer",
+    "streetsidesoftware.code-spell-checker",
+    "Gruntfuggly.todo-tree"
   ]
 }

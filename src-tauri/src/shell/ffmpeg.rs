@@ -239,8 +239,12 @@ fn parse_duration_str(duration_str: &str) -> Option<f64> {
 #[tauri::command]
 pub async fn get_video_info(app: AppHandle, video_path: &str) -> Result<VideoInfo, String> {
   let shell = app.shell();
-  let (mut rx, _child) =
-    shell.command("ffmpeg").args(&["-i", video_path, "-hide_banner"]).spawn().map_err(|e| e.to_string())?;
+  let (mut rx, _child) = shell
+    .sidecar("ffmpeg")
+    .map_err(|e| format!("Failed to create sidecar: {}", e))?
+    .args(&["-i", video_path, "-hide_banner"])
+    .spawn()
+    .map_err(|e| e.to_string())?;
   let mut video_info = VideoInfo { path: video_path.to_string(), ..Default::default() };
 
   // 正则表达式
@@ -348,7 +352,12 @@ pub async fn convert_video_to_mp4(app: AppHandle, video_path: &str, output_path:
 
   // 创建命令（注意：这里的 "ffmpeg" 必须在 capabilities 中配置）
   log::info!("ffmpeg {}", args.join(" "));
-  let (mut rx, _child) = shell.command("ffmpeg").args(args).spawn().map_err(|e| e.to_string())?;
+  let (mut rx, _child) = shell
+    .sidecar("ffmpeg")
+    .map_err(|e| format!("Failed to create sidecar: {}", e))?
+    .args(args)
+    .spawn()
+    .map_err(|e| e.to_string())?;
 
   // 异步处理输出流，不要使用 block_on
   while let Some(event) = rx.recv().await {
@@ -415,7 +424,12 @@ pub async fn create_highlight_video(
 
     log::info!("ffmpeg {}", args.join(" "));
     let shell = app.shell();
-    let (mut rx, _child) = shell.command("ffmpeg").args(args).spawn().map_err(|e| e.to_string())?;
+    let (mut rx, _child) = shell
+      .sidecar("ffmpeg")
+      .map_err(|e| format!("Failed to create sidecar: {}", e))?
+      .args(args)
+      .spawn()
+      .map_err(|e| e.to_string())?;
     while let Some(event) = rx.recv().await {
       match event {
         CommandEvent::Stderr(data) => {
@@ -462,7 +476,12 @@ pub async fn create_highlight_video(
   let file_path = list_file_name.to_string_lossy().into_owned();
   let args =
     Vec::from(["-f", "concat", "-safe", "0", "-i", &file_path, "-c", "copy", "-y", output_path, "-hide_banner"]);
-  let (mut rx, _child) = shell.command("ffmpeg").args(args).spawn().map_err(|e| e.to_string())?;
+  let (mut rx, _child) = shell
+    .sidecar("ffmpeg")
+    .map_err(|e| format!("Failed to create sidecar: {}", e))?
+    .args(args)
+    .spawn()
+    .map_err(|e| e.to_string())?;
 
   while let Some(event) = rx.recv().await {
     match event {
@@ -594,7 +613,12 @@ pub async fn merge_smart(app: AppHandle, inputs: Vec<&str>, output_path: &str) -
   log::info!("ffmpeg {}", args.join(" "));
 
   let shell = app.shell();
-  let (mut rx, _child) = shell.command("ffmpeg").args(args).spawn().map_err(|e| e.to_string())?;
+  let (mut rx, _child) = shell
+    .sidecar("ffmpeg")
+    .map_err(|e| format!("Failed to create sidecar: {}", e))?
+    .args(args)
+    .spawn()
+    .map_err(|e| e.to_string())?;
 
   while let Some(event) = rx.recv().await {
     match event {
@@ -688,7 +712,12 @@ pub async fn append_smart(
 
   log::info!("Remuxing base to TS...");
   let shell = app.shell();
-  let (mut rx, _) = shell.command("ffmpeg").args(remux_args).spawn().map_err(|e| e.to_string())?;
+  let (mut rx, _) = shell
+    .sidecar("ffmpeg")
+    .map_err(|e| format!("Failed to create sidecar: {}", e))?
+    .args(remux_args)
+    .spawn()
+    .map_err(|e| e.to_string())?;
 
   // 等待基准视频处理完成
   while let Some(event) = rx.recv().await {
@@ -749,7 +778,12 @@ pub async fn append_smart(
 
     log::info!("Transcoding part {} to TS...", i);
     let shell = app.shell();
-    let (mut rx, _) = shell.command("ffmpeg").args(args).spawn().map_err(|e| e.to_string())?;
+    let (mut rx, _) = shell
+      .sidecar("ffmpeg")
+      .map_err(|e| format!("Failed to create sidecar: {}", e))?
+      .args(args)
+      .spawn()
+      .map_err(|e| e.to_string())?;
 
     while let Some(event) = rx.recv().await {
       match event {
@@ -814,8 +848,12 @@ pub async fn append_smart(
 
   log::info!("Final merge (TS -> MP4)...");
   let shell = app.shell();
-  let (mut rx, _) =
-    shell.command("ffmpeg").args(concat_args).spawn().map_err(|e: tauri_plugin_shell::Error| e.to_string())?;
+  let (mut rx, _) = shell
+    .sidecar("ffmpeg")
+    .map_err(|e| format!("Failed to create sidecar: {}", e))?
+    .args(concat_args)
+    .spawn()
+    .map_err(|e: tauri_plugin_shell::Error| e.to_string())?;
 
   while let Some(event) = rx.recv().await {
     if let CommandEvent::Terminated(status) = event {

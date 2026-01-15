@@ -1,29 +1,12 @@
-import vue from '@vitejs/plugin-vue'
-import ViteFonts from 'unplugin-fonts/vite'
-import Icons from 'unplugin-icons/vite'
-import { defineConfig } from 'vite'
+import { sveltekit } from '@sveltejs/kit/vite';
+import tailwindcss from '@tailwindcss/vite';
+import { defineConfig } from 'vite';
 
-const host = process.env.TAURI_DEV_HOST
+const host = process.env.TAURI_DEV_HOST;
 
 // https://vite.dev/config/
 export default defineConfig(async () => ({
-  plugins: [
-    vue(),
-    Icons({
-      autoInstall: true
-    }),
-    ViteFonts({
-      fontsource: {
-        families: [
-          {
-            name: 'Roboto',
-            weights: [100, 300, 400, 500, 700, 900],
-            styles: ['normal', 'italic']
-          }
-        ]
-      }
-    })
-  ],
+  plugins: [tailwindcss(), sveltekit()],
 
   // 防止 Vite 清除 Rust 显示的错误
   clearScreen: false,
@@ -45,4 +28,4 @@ export default defineConfig(async () => ({
       ignored: ['**/src-tauri/**']
     }
   }
-}))
+}));

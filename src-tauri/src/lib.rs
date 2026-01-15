@@ -33,9 +33,15 @@ pub fn run() {
   init_file_path("rigel".to_string());
 
   tauri::Builder::default()
-    .manage(ServerState{
-      shutdown_tx: Mutex::new(None),
-    })
+    .plugin(tauri_plugin_single_instance::init(|app, args, cwd| {
+      log::info!("single instance: {args:?} {cwd:?}");
+
+      let _ = app.get_webview_window("main").map(|w| {
+        let _ = w.show();
+        let _ = w.set_focus();
+      });
+    }))
+    .manage(ServerState { shutdown_tx: Mutex::new(None) })
     .on_window_event(|window, event| {
       if let WindowEvent::CloseRequested { api, .. } = event {
         api.prevent_close();

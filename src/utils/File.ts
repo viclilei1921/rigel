@@ -5,6 +5,6 @@
  */
 export function ExtractFilename(path: string): string {
   // 匹配最后一个斜杠后的内容
-  const match = path.match(/[^\\/]+$/)
-  return match ? match[0] : ''
+  const match = path.match(/[^\\/]+$/);
+  return match ? match[0] : '';
 }
