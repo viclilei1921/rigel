@@ -25,6 +25,9 @@
   let showSpeedMenu = $state(false);
   let showVolumeSlider = $state(false);
 
+  let progressPlayer = $derived((currentTime / (duration || 1)) * 100);
+  let progressVolume = $derived((volume / 1) * 100);
+
   const speedList = [0.5, 0.75, 1, 1.25, 1.5, 2, 3, 4];
 
   // 3. 快捷键处理
@@ -83,25 +86,17 @@
       isFullscreen = false;
     }
   }
-
-  // 5. 自动隐藏控制栏
-  // let controlsTimeout: number;
-  // function resetControlsTimeout() {
-  //   showControls = true;
-  //   clearTimeout(controlsTimeout);
-  //   if (!paused) {
-  //     controlsTimeout = window.setTimeout(() => (showControls = false), 3000);
-  //   }
-  // }
 </script>
 
 <svelte:window onkeydown={handleKeyDown} />
 
 {#if player.show}
-  <!-- svelte-ignore a11y_click_events_have_key_events -->
   <div
+    role="presentation"
     transition:fade={{ duration: 200 }}
-    class="fixed inset-0 z-999 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm"
+    class="fixed inset-0 z-999 flex items-center justify-center bg-black/50 backdrop-blur-sm"
+    onpointerenter={() => (showControls = true)}
+    onpointerleave={() => (showControls = false)}
   >
     <div
       class="absolute top-0 right-0 left-0 z-20 p-4 transition-opacity duration-300 {showControls
@@ -144,7 +139,8 @@
           max={duration}
           step="0.01"
           bind:value={currentTime}
-          class="h-1.5 w-full cursor-pointer appearance-none rounded-lg bg-gray-600 accent-blue-500 transition-all group-hover:h-2"
+          style="--progress: {progressPlayer}%"
+          class="h-1 w-full cursor-pointer appearance-none rounded-lg bg-gray-600 accent-blue-500 transition-all group-hover:h-1.5"
         />
       </div>
 
@@ -203,7 +199,7 @@
           </button>
 
           <div
-            class="overflow-hidden transition-all duration-300 {showVolumeSlider
+            class="flex items-center transition-all duration-300 {showVolumeSlider
               ? 'w-24 opacity-100'
               : 'w-0 opacity-0'}"
           >
@@ -212,8 +208,9 @@
               min="0"
               max="1"
               step="0.01"
+              style="--progress: {progressVolume}%"
               bind:value={volume}
-              class="h-1 w-20 accent-blue-500"
+              class="h-1 w-20 appearance-none rounded-lg accent-blue-500 transition-all"
             />
           </div>
         </div>
@@ -228,14 +225,20 @@
   </div>
 {/if}
 
-<style>
+<style lang="less">
   /* 隐藏原生进度条样式，美化 Input Range */
   input[type='range'] {
     appearance: none;
-    background: rgba(255, 255, 255, 0.2);
+    background: linear-gradient(
+      to right,
+      #3b82f6 0%,
+      #3b82f6 var(--progress),
+      rgba(255, 255, 255, 0.2) var(--progress),
+      rgba(255, 255, 255, 0.2) 100%
+    );
   }
   input[type='range']::-webkit-slider-thumb {
-    -webkit-appearance: none;
+    appearance: none;
     height: 12px;
     width: 12px;
     border-radius: 50%;
