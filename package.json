@@ -10,6 +10,7 @@
     "win": "tauri dev",
     "check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
     "check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
+    "build:mac": "tauri build -- --bundles dmg",
     "preview": "vite preview"
   },
   "dependencies": {
