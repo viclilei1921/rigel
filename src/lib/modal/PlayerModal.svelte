@@ -10,13 +10,15 @@
   import LineMdVolumeLowFilled from '$lib/icons/LineMdVolumeLowFilled.svelte';
   import LineMdVolumeMediumFilled from '$lib/icons/LineMdVolumeMediumFilled.svelte';
   import LineMdVolumeHighFilled from '$lib/icons/LineMdVolumeHighFilled.svelte';
+  import ButtonLoading from '$lib/icons/ButtonLoading.svelte';
 
   const player = getPlayerContext();
 
   // 2. 状态定义
   let videoEl = $state<HTMLVideoElement>();
+  let loading = $state(true);
   let paused = $state(true);
-  let duration = $state(0);
+  let duration = $state(1);
   let currentTime = $state(0);
   let volume = $state(1);
   let playbackRate = $state(1);
@@ -119,6 +121,7 @@
       bind:duration
       bind:volume
       bind:playbackRate
+      onloadedmetadata={() => (loading = false)}
       src={player.url}
       autoplay
       class="pointer-events-auto h-full w-full object-contain"
@@ -126,9 +129,16 @@
     >
       <track kind="captions" />
     </video>
+    {#if loading}
+    <div
+      class="absolute top-0 right-0 left-0 bottom-0 z-10 flex items-center text-white justify-center transition-opacity duration-300"
+    >
+      <ButtonLoading class="size-20" />
+    </div>
+    {/if}
 
     <div
-      class="absolute right-0 bottom-0 left-0 z-20 bg-linear-to-t from-black/80 to-transparent px-6 pt-10 pb-3 transition-opacity duration-300 {showControls
+      class="absolute right-0 bottom-0 left-0 z-20 bg-linear-to-t from-black/80 to-transparent px-6 pt-10 pb-3 transition-opacity duration-300 {showControls && !loading
         ? 'opacity-100'
         : 'opacity-0'}"
     >
